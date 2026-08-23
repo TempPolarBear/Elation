@@ -17,425 +17,887 @@ import {
 
 import renderCharacters from "./utils/render.js";
 
-// | Класс        | Attack | Defense | Magic |
-// | 🛡️ Warrior   | 25–35  | 30–40   | 5–10 |
-// | 🏹 Archer    | 30–40  | 15–25   | 10–20 |
-// | 🗡️ Assassin  | 35–45  | 10–20   | 5–15 |
-// | 🔮 Mage      | 10–20  | 10–20   | 35–50 |
-
-// Остальное:
-
-// 💰 Gold — всегда 100
-// ⚔️ Weapon Damage — 15–35
-// ⚒️ Weapon Durability — 70–100
-// 🛡️ Armor Defense — 10–30
-// 🛡️ Armor Durability — 70–100
-// 🐾 Pet Attack — 5–20
-
-// Редкость
-// Common
-// Uncommon
-// Rare
-// Epic
-// Legendary
-// Mythical
-
-// Бафф питомца
-// +10 Attack
-// +10 Defense
-// +15 Magic
-// +20 Health
-// +5 Speed
-// Critical Chance +10%
-
+// ELEMENTS
 
 const createCharacterBtn = document.querySelector("#createCharacter");
+const characterList = document.querySelector("#characterList");
+
+const characterClassSelect = document.querySelector("#characterClass");
+const characterAvatar = document.querySelector("#characterAvatar");
+const randomizeAvatar = document.querySelector("#randomizeAvatar");
+
+const characterStep = document.querySelector("#characterStep");
+const weaponStep = document.querySelector("#weaponStep");
+const armorStep = document.querySelector("#armorStep");
+const petStep = document.querySelector("#petStep");
+
+const nextToWeapon = document.querySelector("#nextToWeapon");
+const nextToArmor = document.querySelector("#nextToArmor");
+const nextToPet = document.querySelector("#nextToPet");
+
+const backToCharacter = document.querySelector("#backToCharacter");
+const backToWeapon = document.querySelector("#backToWeapon");
+const backToArmor = document.querySelector("#backToArmor");
+
+const characterPreviewName =
+    document.querySelector("#characterPreviewName");
+
+const characterPreviewClass =
+    document.querySelector("#characterPreviewClass");
+
+const characterNameInput =
+    document.querySelector("#characterName");
+
+// AVATAR
+
+const characterColors = {
+    Warrior: "b6d7a8",
+    Mage: "c9b6e4",
+    Archer: "b6e0d5",
+    Assassin: "d4a5a5",
+};
+
+const defaultAvatar =
+    "https://placehold.co/200x250/e9ecef/6c757d?text=Choose+Class";
+
+// LOCAL STORAGE
+
+const STORAGE_KEY = "characters";
+
+let weaponStats;
+let armorStats;
+let petStats;
 
 const characters = [];
 
-const characterList = document.querySelector("#characterList");
-const characterClassSelect = document.querySelector("#characterClass");
+// SAVE
 
+function saveCharacters() {
+    const charactersToSave = characters.map(character => ({
+        name: character.name,
+        characterClass: character.characterClass,
+        attack: character.attack,
+        defense: character.defense,
+        magic: character.magic,
+        gold: character.gold,
+        avatar: character.avatar,
 
-characterClassSelect.addEventListener("change", function () {
-    const characterStats = generateCharacterStats(
-        characterClassSelect.value
+        weapon: {
+            type: character.weapon.type,
+            damage: character.weapon.damage,
+            durability: character.weapon.durability,
+            enchantment: character.weapon.enchantment,
+            rarity: character.weapon.rarity,
+        },
+
+        armor: {
+            type: character.armor.type,
+            material: character.armor.material,
+            defense: character.armor.defense,
+            durability: character.armor.durability,
+            enchantment: character.armor.enchantment,
+            rarity: character.armor.rarity,
+        },
+
+        pet: {
+            name: character.pet.name,
+            species: character.pet.species,
+            buff: character.pet.buff,
+            rarity: character.pet.rarity,
+            attack: character.pet.attack,
+        },
+    }));
+
+    localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(charactersToSave)
+    );
+}
+
+// LOAD
+
+function loadCharacters() {
+    const savedCharacters =
+        localStorage.getItem(STORAGE_KEY);
+
+    if (!savedCharacters) {
+        return;
+    }
+
+    try {
+        const parsedCharacters =
+            JSON.parse(savedCharacters);
+
+        if (!Array.isArray(parsedCharacters)) {
+            return;
+        }
+
+        characters.push(
+            ...parsedCharacters.filter(character =>
+                character &&
+                character.weapon &&
+                character.armor &&
+                character.pet
+            )
+        );
+    } catch (error) {
+        console.error("Cannot load characters:", error);
+    }
+}
+
+loadCharacters();
+
+renderCharacters(
+    characters,
+    characterList
+);
+
+// VALIDATION
+
+function isSelectEmpty(select) {
+    return (
+        !select ||
+        select.selectedIndex === 0 ||
+        !select.value ||
+        select.value === "Select type" ||
+        select.value === "Select class" ||
+        select.value === "Select material" ||
+        select.value === "Select species"
+    );
+}
+
+// VALIDATION MODAL
+
+function createValidationModal() {
+    let modal = document.querySelector("#validationModal");
+
+    if (modal) {
+        return modal;
+    }
+
+    document.body.insertAdjacentHTML(
+        "beforeend",
+        `
+        <div
+            class="modal fade"
+            id="validationModal"
+            tabindex="-1"
+            aria-hidden="true"
+        >
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+
+                    <div class="modal-header bg-dark text-white">
+                        <h5 class="modal-title fw-bold">
+                            ⚠️ Incomplete
+                        </h5>
+
+                        <button
+                            type="button"
+                            class="btn-close btn-close-white"
+                            data-bs-dismiss="modal"
+                        ></button>
+                    </div>
+
+                    <div class="modal-body text-center py-4">
+
+                        <div class="fs-1 mb-3">
+                            ⚠️
+                        </div>
+
+                        <p
+                            id="validationMessage"
+                            class="fs-5 mb-0"
+                        ></p>
+
+                    </div>
+
+                    <div class="modal-footer border-0 justify-content-center pb-4">
+
+                        <button
+                            type="button"
+                            class="btn btn-dark px-4"
+                            data-bs-dismiss="modal"
+                        >
+                            ✓ Got it
+                        </button>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        `
     );
 
-    document.querySelector("#characterAttack").value =
-        characterStats.attack;
+    return document.querySelector("#validationModal");
+}
 
-    document.querySelector("#characterDefense").value =
-        characterStats.defense;
+function showValidationMessage(message) {
+    const modalElement = createValidationModal();
 
-    document.querySelector("#characterMagic").value =
-        characterStats.magic;
+    modalElement.querySelector(
+        "#validationMessage"
+    ).textContent = message;
 
-    document.querySelector("#characterGold").value =
-        characterStats.gold;
-});
+    const modal =
+        bootstrap.Modal.getOrCreateInstance(
+            modalElement
+        );
 
+    modal.show();
+}
 
-createCharacterBtn.addEventListener("click", function () {
+// AVATAR
 
-    // Character
-    const name = document.querySelector("#characterName").value;
-    const characterClass =
-        document.querySelector("#characterClass").value;
+function generateAvatar() {
+    const selectedClass =
+        characterClassSelect.value;
 
-    // Weapon
-    const weaponType =
-        document.querySelector("#weaponType").value;
+    if (isSelectEmpty(characterClassSelect)) {
+        characterAvatar.src = defaultAvatar;
+        randomizeAvatar.disabled = true;
+        return;
+    }
 
-    // Armor
-    const armorType =
-        document.querySelector("#armorType").value;
+    const seed =
+        `${selectedClass}-${Date.now()}-${Math.random()}`;
 
-    const armorMaterial =
-        document.querySelector("#armorMaterial").value;
+    characterAvatar.src =
+        `https://api.dicebear.com/10.x/adventurer/svg?seed=${seed}&backgroundColor=${characterColors[selectedClass]}`;
 
-    // Pet
-    const petName =
-        document.querySelector("#petName").value;
+    randomizeAvatar.disabled = false;
+}
 
-    const petSpecies =
-        document.querySelector("#petSpecies").value;
+// VIEW DETAILS
 
+function showCharacterDetails(character) {
+    const weapon = character.weapon || {};
+    const armor = character.armor || {};
+    const pet = character.pet || {};
 
-    // Character stats
-    const characterStats = {
-        attack: Number(
-            document.querySelector("#characterAttack").value
-        ),
+    const modalBody =
+        document.querySelector("#characterModalBody");
 
-        defense: Number(
-            document.querySelector("#characterDefense").value
-        ),
+    const modalElement =
+        document.querySelector("#characterModal");
 
-        magic: Number(
-            document.querySelector("#characterMagic").value
-        ),
+    if (!modalBody || !modalElement) {
+        return;
+    }
 
-        gold: Number(
-            document.querySelector("#characterGold").value
-        ),
-    };
+    modalBody.innerHTML = `
+        <div class="text-center mb-4">
+            <img
+                src="${character.avatar || defaultAvatar}"
+                alt="${character.name || "Character"}"
+                class="img-fluid rounded-4"
+                style="max-width:220px;"
+            >
+        </div>
 
-
-    // Weapon stats
-    const weaponStats = generateWeaponStats();
-
-    document.querySelector("#weaponDamage").value =
-        weaponStats.damage;
-
-    document.querySelector("#weaponDurability").value =
-        weaponStats.durability;
-
-    document.querySelector("#weaponEnchantment").value =
-        weaponStats.enchantment;
-
-    document.querySelector("#weaponRarity").value =
-        weaponStats.rarity;
-
-
-    // Armor stats
-    const armorStats = generateArmorStats();
-
-    document.querySelector("#armorDefense").value =
-        armorStats.defense;
-
-    document.querySelector("#armorDurability").value =
-        armorStats.durability;
-
-    document.querySelector("#armorEnchantment").value =
-        armorStats.enchantment;
-
-    document.querySelector("#armorRarity").value =
-        armorStats.rarity;
-
-
-    // Pet stats
-    const petStats = generatePetStats();
-
-    document.querySelector("#petAttack").value =
-        petStats.attack;
-
-    document.querySelector("#petBuff").value =
-        petStats.buff;
-
-    document.querySelector("#petRarity").value =
-        petStats.rarity;
-
-
-    // Create Weapon
-    const weapon = new Weapon(
-        weaponType,
-        weaponStats.damage,
-        weaponStats.durability,
-        weaponStats.enchantment,
-        weaponStats.rarity
-    );
-
-
-    // Create Armor
-    const armor = new Armor(
-        armorType,
-        armorMaterial,
-        armorStats.defense,
-        armorStats.durability,
-        armorStats.enchantment,
-        armorStats.rarity
-    );
-
-
-    // Create Pet
-    const pet = new Pet(
-        petName,
-        petSpecies,
-        petStats.buff,
-        petStats.rarity,
-        petStats.attack
-    );
-
-
-    // Create Character
-    const character = new Character(
-        name,
-        characterClass,
-        characterStats.attack,
-        characterStats.defense,
-        characterStats.magic,
-        characterStats.gold,
-        weapon,
-        armor,
-        pet
-    );
-
-
-    characters.push(character);
-
-    renderCharacters(characters, characterList);
-
-
-    // Modal content
-    document.querySelector("#characterModalBody").innerHTML = `
-        <h1 class="text-center mb-3">
-            ⚔️ ${character.name}
-            ${CharacterHelper.isLegendary(character) ? "⭐" : ""}
-            ⚔️
-        </h1>
+        <h2 class="text-center mb-2">
+            ⚔️ ${character.name || "Unknown"}
+        </h2>
 
         <h5 class="text-center text-muted mb-4">
-            ${character.characterClass}
+            ${character.characterClass || "Unknown class"}
         </h5>
 
-        <h4 class="text-center mb-3">
-            📊 Character Statistics
-        </h4>
-
-        <div class="card border-dark mb-3">
+        <div class="card mb-3">
             <div class="card-header fw-bold">
                 📊 Statistics
             </div>
 
             <div class="card-body">
-                <p>⚔️ Attack: ${character.attack}</p>
-                <p>🛡️ Defense: ${character.defense}</p>
-                <p>✨ Magic: ${character.magic}</p>
-                <p>💰 Gold: ${character.gold}</p>
+                <p>⚔️ <strong>Attack:</strong> ${character.attack || 0}</p>
+                <p>🛡️ <strong>Defense:</strong> ${character.defense || 0}</p>
+                <p>✨ <strong>Magic:</strong> ${character.magic || 0}</p>
+                <p>💰 <strong>Gold:</strong> ${character.gold || 0}</p>
             </div>
         </div>
 
-        <div class="card border-danger mb-3">
+        <div class="card mb-3">
             <div class="card-header fw-bold">
                 ⚔️ Weapon
             </div>
 
             <div class="card-body">
-                <p>Type: ${weapon.type}</p>
-                <p><b>Damage:</b> ${weapon.damage}</p>
-                <p>Durability: ${weapon.durability}</p>
-                <p>Enchantment: ${weapon.enchantment}</p>
-                <p>Rarity: ${getRarityBadge(weapon.rarity)}</p>
+                <p><strong>Type:</strong> ${weapon.type || "Unknown"}</p>
+                <p><strong>Damage:</strong> ${weapon.damage || 0}</p>
+                <p><strong>Durability:</strong> ${weapon.durability || 0}</p>
+                <p><strong>Enchantment:</strong> ${weapon.enchantment || "None"}</p>
+                <p>
+                    <strong>Rarity:</strong>
+                    ${getRarityBadge(weapon.rarity || "Common")}
+                </p>
             </div>
         </div>
 
-        <div class="card border-primary mb-3">
+        <div class="card mb-3">
             <div class="card-header fw-bold">
                 🛡️ Armor
             </div>
 
             <div class="card-body">
-                <p>Type: ${armor.type}</p>
-                <p>Material: ${armor.material}</p>
-                <p>Defense: ${armor.defense}</p>
-                <p>Durability: ${armor.durability}</p>
-                <p>Enchantment: ${armor.enchantment}</p>
-                <p>Rarity: ${getRarityBadge(armor.rarity)}</p>
+                <p><strong>Type:</strong> ${armor.type || "Unknown"}</p>
+                <p><strong>Material:</strong> ${armor.material || "Unknown"}</p>
+                <p><strong>Defense:</strong> ${armor.defense || 0}</p>
+                <p><strong>Durability:</strong> ${armor.durability || 0}</p>
+                <p><strong>Enchantment:</strong> ${armor.enchantment || "None"}</p>
+                <p>
+                    <strong>Rarity:</strong>
+                    ${getRarityBadge(armor.rarity || "Common")}
+                </p>
             </div>
         </div>
 
-        <div class="card border-success mb-3">
+        <div class="card">
             <div class="card-header fw-bold">
                 🐾 Pet
             </div>
 
             <div class="card-body">
-                <p>Name: ${pet.name}</p>
-                <p>Species: ${pet.species}</p>
-                <p>Buff: ${pet.buff}</p>
-                <p>Attack: ${pet.attack}</p>
-                <p>Rarity: ${getRarityBadge(pet.rarity)}</p>
+                <p><strong>Name:</strong> ${pet.name || "Unknown"}</p>
+                <p><strong>Species:</strong> ${pet.species || "Unknown"}</p>
+                <p><strong>Buff:</strong> ${pet.buff || "None"}</p>
+                <p><strong>Attack:</strong> ${pet.attack || 0}</p>
+                <p>
+                    <strong>Rarity:</strong>
+                    ${getRarityBadge(pet.rarity || "Common")}
+                </p>
             </div>
         </div>
     `;
 
+    bootstrap.Modal
+        .getOrCreateInstance(modalElement)
+        .show();
+}
 
-    // Modal
-    const modal = new bootstrap.Modal(
-        document.querySelector("#characterModal")
-    );
+document.addEventListener(
+    "showCharacterDetails",
+    event => {
+        showCharacterDetails(event.detail);
+    }
+);
 
-    const modalTitle =
-        document.querySelector("#modalTitle");
+// CHARACTER → WEAPON
 
-    const modalHeader =
-        document.querySelector(".modal-header");
+nextToWeapon.addEventListener(
+    "click",
+    event => {
+        event.preventDefault();
 
+        const name =
+            characterNameInput.value.trim();
 
-    modalTitle.className = "modal-title";
-    modalHeader.className = "modal-header";
+        const classEmpty =
+            isSelectEmpty(characterClassSelect);
 
+        if (!name && classEmpty) {
+            showValidationMessage(
+                "Please enter character name and choose a class."
+            );
+            return;
+        }
 
-    if (character.weapon.rarity === "Common") {
-        modalTitle.classList.add("text-secondary");
+        if (!name) {
+            showValidationMessage(
+                "Please enter character name."
+            );
+            return;
+        }
 
-        modalHeader.classList.add(
-            "bg-secondary",
-            "text-white"
+        if (classEmpty) {
+            showValidationMessage(
+                "Please choose a character class."
+            );
+            return;
+        }
+
+        weaponStats =
+            generateWeaponStats();
+
+        document.querySelector("#weaponDamage").value =
+            weaponStats.damage;
+
+        document.querySelector("#weaponDurability").value =
+            weaponStats.durability;
+
+        document.querySelector("#weaponEnchantment").value =
+            weaponStats.enchantment;
+
+        document.querySelector("#weaponRarity").value =
+            weaponStats.rarity;
+
+        characterStep.classList.add("d-none");
+        weaponStep.classList.remove("d-none");
+    }
+);
+
+// WEAPON → CHARACTER
+
+backToCharacter.addEventListener(
+    "click",
+    event => {
+        event.preventDefault();
+
+        weaponStep.classList.add("d-none");
+        characterStep.classList.remove("d-none");
+    }
+);
+
+// WEAPON → ARMOR
+
+nextToArmor.addEventListener(
+    "click",
+    event => {
+        event.preventDefault();
+
+        const weaponType =
+            document.querySelector("#weaponType");
+
+        if (isSelectEmpty(weaponType)) {
+            showValidationMessage(
+                "Please choose a weapon type."
+            );
+            return;
+        }
+
+        armorStats =
+            generateArmorStats();
+
+        document.querySelector("#armorDefense").value =
+            armorStats.defense;
+
+        document.querySelector("#armorDurability").value =
+            armorStats.durability;
+
+        document.querySelector("#armorEnchantment").value =
+            armorStats.enchantment;
+
+        document.querySelector("#armorRarity").value =
+            armorStats.rarity;
+
+        weaponStep.classList.add("d-none");
+        armorStep.classList.remove("d-none");
+    }
+);
+
+// ARMOR → WEAPON
+
+backToWeapon.addEventListener(
+    "click",
+    event => {
+        event.preventDefault();
+
+        armorStep.classList.add("d-none");
+        weaponStep.classList.remove("d-none");
+    }
+);
+
+// ARMOR → PET
+
+nextToPet.addEventListener(
+    "click",
+    event => {
+        event.preventDefault();
+
+        const armorType =
+            document.querySelector("#armorType");
+
+        const armorMaterial =
+            document.querySelector("#armorMaterial");
+
+        const typeEmpty =
+            isSelectEmpty(armorType);
+
+        const materialEmpty =
+            isSelectEmpty(armorMaterial);
+
+        if (typeEmpty && materialEmpty) {
+            showValidationMessage(
+                "Please choose armor type and material."
+            );
+            return;
+        }
+
+        if (typeEmpty) {
+            showValidationMessage(
+                "Please choose an armor type."
+            );
+            return;
+        }
+
+        if (materialEmpty) {
+            showValidationMessage(
+                "Please choose armor material."
+            );
+            return;
+        }
+
+        petStats =
+            generatePetStats();
+
+        document.querySelector("#petAttack").value =
+            petStats.attack;
+
+        document.querySelector("#petBuff").value =
+            petStats.buff;
+
+        document.querySelector("#petRarity").value =
+            petStats.rarity;
+
+        armorStep.classList.add("d-none");
+        petStep.classList.remove("d-none");
+    }
+);
+
+// PET → ARMOR
+
+backToArmor.addEventListener(
+    "click",
+    event => {
+        event.preventDefault();
+
+        petStep.classList.add("d-none");
+        armorStep.classList.remove("d-none");
+    }
+);
+
+// CHARACTER NAME
+
+characterNameInput.addEventListener(
+    "input",
+    function () {
+        characterPreviewName.textContent =
+            this.value.trim() || "Your Character";
+    }
+);
+
+// CHARACTER CLASS
+
+characterClassSelect.addEventListener(
+    "change",
+    function () {
+        if (isSelectEmpty(characterClassSelect)) {
+            characterPreviewClass.textContent =
+                "Choose your class";
+
+            characterAvatar.src =
+                defaultAvatar;
+
+            randomizeAvatar.disabled = true;
+
+            document.querySelector("#characterAttack").value = "";
+            document.querySelector("#characterDefense").value = "";
+            document.querySelector("#characterMagic").value = "";
+            document.querySelector("#characterGold").value = "";
+
+            return;
+        }
+
+        const stats =
+            generateCharacterStats(
+                characterClassSelect.value
+            );
+
+        document.querySelector("#characterAttack").value =
+            stats.attack;
+
+        document.querySelector("#characterDefense").value =
+            stats.defense;
+
+        document.querySelector("#characterMagic").value =
+            stats.magic;
+
+        document.querySelector("#characterGold").value =
+            stats.gold;
+
+        characterPreviewClass.textContent =
+            characterClassSelect.value;
+
+        generateAvatar();
+    }
+);
+
+// RANDOMIZE AVATAR
+
+randomizeAvatar.addEventListener(
+    "click",
+    event => {
+        event.preventDefault();
+
+        if (isSelectEmpty(characterClassSelect)) {
+            showValidationMessage(
+                "Please choose a character class first."
+            );
+            return;
+        }
+
+        generateAvatar();
+    }
+);
+
+// CREATE CHARACTER
+
+createCharacterBtn.addEventListener(
+    "click",
+    event => {
+        event.preventDefault();
+
+        const name =
+            characterNameInput.value.trim();
+
+        const characterClass =
+            characterClassSelect.value;
+
+        const classEmpty =
+            isSelectEmpty(characterClassSelect);
+
+        const weaponType =
+            document.querySelector("#weaponType");
+
+        const armorType =
+            document.querySelector("#armorType");
+
+        const armorMaterial =
+            document.querySelector("#armorMaterial");
+
+        const petName =
+            document.querySelector("#petName").value.trim();
+
+        const petSpecies =
+            document.querySelector("#petSpecies");
+
+        if (!name && classEmpty) {
+            showValidationMessage(
+                "Please enter character name and choose a class."
+            );
+            return;
+        }
+
+        if (!name) {
+            showValidationMessage(
+                "Please enter character name."
+            );
+            return;
+        }
+
+        if (classEmpty) {
+            showValidationMessage(
+                "Please choose a character class."
+            );
+            return;
+        }
+
+        if (isSelectEmpty(weaponType)) {
+            showValidationMessage(
+                "Please choose a weapon type."
+            );
+            return;
+        }
+
+        const armorTypeEmpty =
+            isSelectEmpty(armorType);
+
+        const armorMaterialEmpty =
+            isSelectEmpty(armorMaterial);
+
+        if (
+            armorTypeEmpty &&
+            armorMaterialEmpty
+        ) {
+            showValidationMessage(
+                "Please choose armor type and material."
+            );
+            return;
+        }
+
+        if (armorTypeEmpty) {
+            showValidationMessage(
+                "Please choose an armor type."
+            );
+            return;
+        }
+
+        if (armorMaterialEmpty) {
+            showValidationMessage(
+                "Please choose armor material."
+            );
+            return;
+        }
+
+        const petSpeciesEmpty =
+            isSelectEmpty(petSpecies);
+
+        if (!petName && petSpeciesEmpty) {
+            showValidationMessage(
+                "Please enter pet name and choose a species."
+            );
+            return;
+        }
+
+        if (!petName) {
+            showValidationMessage(
+                "Please enter pet name."
+            );
+            return;
+        }
+
+        if (petSpeciesEmpty) {
+            showValidationMessage(
+                "Please choose a pet species."
+            );
+            return;
+        }
+
+        if (
+            !weaponStats ||
+            !armorStats ||
+            !petStats
+        ) {
+            showValidationMessage(
+                "Please complete all steps before creating your character."
+            );
+            return;
+        }
+
+        const characterStats = {
+            attack: Number(
+                document.querySelector(
+                    "#characterAttack"
+                ).value
+            ),
+
+            defense: Number(
+                document.querySelector(
+                    "#characterDefense"
+                ).value
+            ),
+
+            magic: Number(
+                document.querySelector(
+                    "#characterMagic"
+                ).value
+            ),
+
+            gold: Number(
+                document.querySelector(
+                    "#characterGold"
+                ).value
+            ),
+        };
+
+        const weapon =
+            new Weapon(
+                weaponType.value,
+                weaponStats.damage,
+                weaponStats.durability,
+                weaponStats.enchantment,
+                weaponStats.rarity
+            );
+
+        const armor =
+            new Armor(
+                armorType.value,
+                armorMaterial.value,
+                armorStats.defense,
+                armorStats.durability,
+                armorStats.enchantment,
+                armorStats.rarity
+            );
+
+        const pet =
+            new Pet(
+                petName,
+                petSpecies.value,
+                petStats.buff,
+                petStats.rarity,
+                petStats.attack
+            );
+
+        const character =
+            new Character(
+                name,
+                characterClass,
+                characterStats.attack,
+                characterStats.defense,
+                characterStats.magic,
+                characterStats.gold,
+                weapon,
+                armor,
+                pet
+            );
+
+        character.avatar =
+            characterAvatar.src;
+
+        characters.push(character);
+
+        saveCharacters();
+
+        renderCharacters(
+            characters,
+            characterList
         );
 
-        modalTitle.innerHTML =
-            "⚪ Common Character";
+        showCharacterDetails(character);
+
+        resetCreator();
     }
+);
 
+// RESET CREATOR
 
-    if (character.weapon.rarity === "Uncommon") {
-        modalTitle.classList.add("text-success");
+function resetCreator() {
+    characterNameInput.value = "";
 
-        modalHeader.classList.add(
-            "bg-success",
-            "text-white"
-        );
-
-        modalTitle.innerHTML =
-            "🟢 Uncommon Character";
-    }
-
-
-    if (character.weapon.rarity === "Rare") {
-        modalTitle.classList.add("text-primary");
-
-        modalHeader.classList.add(
-            "bg-primary",
-            "text-white"
-        );
-
-        modalTitle.innerHTML =
-            "🔵 Rare Character";
-    }
-
-
-    if (character.weapon.rarity === "Epic") {
-        modalTitle.classList.add("text-dark");
-
-        modalHeader.classList.add(
-            "bg-dark",
-            "text-white"
-        );
-
-        modalTitle.innerHTML =
-            "🟣 Epic Character";
-    }
-
-
-    if (character.weapon.rarity === "Legendary") {
-        modalTitle.classList.add("text-warning");
-
-        modalHeader.classList.add("bg-warning");
-
-        modalTitle.innerHTML =
-            "⭐ Legendary Character";
-    }
-
-
-    if (character.weapon.rarity === "Mythical") {
-        modalTitle.classList.add("text-danger");
-
-        modalHeader.classList.add(
-            "bg-danger",
-            "text-white"
-        );
-
-        modalTitle.innerHTML =
-            "🔥 Mythical Character";
-    }
-
-
-    modal.show();
-
-
-    // Reset Character
-    document.querySelector("#characterName").value = "";
-
-    document.querySelector("#characterClass").selectedIndex = 0;
+    characterClassSelect.selectedIndex = 0;
 
     document.querySelector("#characterAttack").value = "";
-
     document.querySelector("#characterDefense").value = "";
-
     document.querySelector("#characterMagic").value = "";
-
     document.querySelector("#characterGold").value = "";
 
+    characterAvatar.src =
+        defaultAvatar;
 
-    // Reset Weapon
+    randomizeAvatar.disabled = true;
+
     document.querySelector("#weaponType").selectedIndex = 0;
-
     document.querySelector("#weaponDamage").value = "";
-
     document.querySelector("#weaponDurability").value = "";
-
     document.querySelector("#weaponEnchantment").value = "";
-
     document.querySelector("#weaponRarity").selectedIndex = 0;
 
-
-    // Reset Armor
     document.querySelector("#armorType").selectedIndex = 0;
-
     document.querySelector("#armorMaterial").selectedIndex = 0;
-
     document.querySelector("#armorDefense").value = "";
-
     document.querySelector("#armorDurability").value = "";
-
     document.querySelector("#armorEnchantment").value = "";
-
     document.querySelector("#armorRarity").selectedIndex = 0;
 
-
-    // Reset Pet
     document.querySelector("#petName").value = "";
-
     document.querySelector("#petSpecies").selectedIndex = 0;
-
     document.querySelector("#petBuff").value = "";
-
     document.querySelector("#petAttack").value = "";
-
     document.querySelector("#petRarity").selectedIndex = 0;
 
+    weaponStats = undefined;
+    armorStats = undefined;
+    petStats = undefined;
 
-    console.log(characters);
-});
+    characterPreviewName.textContent =
+        "Your Character";
+
+    characterPreviewClass.textContent =
+        "Choose your class";
+
+    weaponStep.classList.add("d-none");
+    armorStep.classList.add("d-none");
+    petStep.classList.add("d-none");
+
+    characterStep.classList.remove("d-none");
+}

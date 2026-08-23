@@ -1,7 +1,7 @@
 class CharacterHelper {
     static isLegendary(character) {
-        return character.weapon.rarity === "Legendary" ||
-               character.weapon.rarity === "Mythical";
+        return character?.weapon?.rarity === "Legendary" ||
+               character?.weapon?.rarity === "Mythical";
     }
 }
 
