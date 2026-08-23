@@ -1,0 +1,303 @@
+<!-- Character - 
+имя (name), класс (class), базовая атака (attack), базовая защита (defense), магия (magic), золото (gold).
+
+Weapon -
+тип (type), урон (damage), прочность (durability), зачарование (enchantment), редкость (rarity).
+
+Armor -
+тип (type), материал (material), защита (defense), прочность (durability), зачарование (enchantment), редкость (rarity).
+
+Pet -
+имя (name), вид (species), баф (buff), редкость (rarity), атака (attack).
+
+Character - будет состоять из объектов Weapon, Armor и Pet.
+Именно это и будет композицией-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Creator</title>
+
+    <!-- Bootswatch CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/5.3.8/zephyr/bootstrap.min.css">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+</head>
+<body style="background:#eef3f8;">
+    <div class="container mt-5">
+        <div class="row">
+
+            <!-- Character -->
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 shadow-sm border-0 rounded-4">
+                    <div class="card-header bg-dark text-white text-center">
+                        <h5 class="card-title"><i class="bi bi-person-fill me-2"></i>Character</h5>
+                        <p class="card-text">Create your character</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="characterName" class="form-label">👤 Name:</label>
+                            <input type="text" id="characterName" class="form-control" placeholder="Enter character name">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="characterClass" class="form-label">Class:</label>
+                            <select class="form-select" id="characterClass">
+                                <option selected disabled>Select class</option>
+                                <option value="Warrior">Warrior</option>
+                                <option value="Mage">Mage</option>
+                                <option value="Archer">Archer</option>
+                                <option value="Assassin">Assassin</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="characterAttack" class="form-label">⚔️ Base Attack:</label>
+                            <input type="number" id="characterAttack" class="form-control" placeholder="Enter base attack" readonly>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="characterDefense" class="form-label">🛡️ Base Defense:</label>
+                            <input type="number" id="characterDefense" class="form-control" placeholder="Enter base defense" readonly>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="characterMagic" class="form-label">✨ Base Magic:</label>
+                            <input type="number" id="characterMagic" class="form-control" placeholder="Enter magic" readonly>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="characterGold" class="form-label">💰 Gold:</label>
+                            <input type="number" id="characterGold" class="form-control" placeholder="Enter gold" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weapon -->
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 shadow-sm border-0 rounded-4">
+                    <div class="card-header bg-danger text-white text-center">
+                            <h5 class="card-title">
+                                <i class="bi bi-lightning-charge-fill me-2"></i>Weapon
+                            </h5>
+                        <p class="card-text">Create your weapon</p>
+                    </div>
+                    <div class="card-body">
+
+                        <div class="mb-3">
+                            <label for="weaponType" class="form-label">🗡️ Type:</label>
+                            <select class="form-select" id="weaponType">
+                                <option selected disabled>Select type</option>
+                                <option value="Sword">Sword</option>
+                                <option value="Staff">Staff</option>
+                                <option value="Bow">Bow</option>
+                                <option value="Dagger">Dagger</option>
+                                <option value="Axe">Axe</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="weaponDamage" class="form-label">💥 Damage:</label>
+                            <input type="number" id="weaponDamage" class="form-control" placeholder="Enter weapon damage" readonly>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="weaponDurability" class="form-label">🛠️ Durability:</label>
+                            <input type="number" id="weaponDurability" class="form-control" placeholder="Enter weapon durability" readonly>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="weaponEnchantment" class="form-label">✨ Enchantment:</label>
+                            <input type="text" id="weaponEnchantment" class="form-control" placeholder="Random enchantment" readonly>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="weaponRarity" class="form-label">🏆 Rarity:</label>
+                            <select class="form-select" id="weaponRarity" disabled>
+                                <option selected disabled>Select rarity</option>
+                                <option value="Common">Common</option>
+                                <option value="Uncommon">Uncommon</option>
+                                <option value="Rare">Rare</option>
+                                <option value="Epic">Epic</option>
+                                <option value="Legendary">Legendary</option>
+                                <option value="Mythical">Mythical</option>
+                            </select>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Armor -->
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 shadow-sm border-0 rounded-4">
+                    <div class="card-header bg-primary text-white text-center">
+                        <h5 class="card-title"><i class="bi bi-shield-fill me-2"></i>Armor</h5>
+                        <p class="card-text">Create your armor</p>
+                    </div>
+                    <div class="card-body">
+
+                        <div class="mb-3">
+                            <label for="armorType" class="form-label">🛡️ Type:</label>
+                            <select class="form-select" id="armorType">
+                                <option selected disabled>Select type</option>
+                                <option value="Helmet">Helmet</option>
+                                <option value="Chestplate">Chestplate</option>
+                                <option value="Gloves">Gloves</option>
+                                <option value="Boots">Boots</option>
+                                <option value="Shield">Shield</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="armorMaterial" class="form-label">⛓️ Material:</label>
+                            <select class="form-select" id="armorMaterial">
+                                <option selected disabled>Select material</option>
+                                <option value="Leather">Leather</option>
+                                <option value="Iron">Iron</option>
+                                <option value="Steel">Steel</option>
+                                <option value="Mithril">Mithril</option>
+                                <option value="Dragon Scale">Dragon Scale</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="armorDefense" class="form-label">🛡️ Defense:</label>
+                            <input type="number" id="armorDefense" class="form-control" placeholder="Enter armor defense" readonly>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="armorDurability" class="form-label">🛠️ Durability:</label>
+                            <input type="number" id="armorDurability" class="form-control" placeholder="Enter armor durability" readonly>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="armorEnchantment" class="form-label">✨ Enchantment:</label>
+                            <input type="text" id="armorEnchantment" class="form-control" placeholder="Random enchantment" readonly>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="armorRarity" class="form-label">🏆 Rarity:</label>
+                            <select class="form-select" id="armorRarity" disabled>
+                                <option selected disabled>Select rarity</option>
+                                <option value="Common">Common</option>
+                                <option value="Uncommon">Uncommon</option>
+                                <option value="Rare">Rare</option>
+                                <option value="Epic">Epic</option>
+                                <option value="Legendary">Legendary</option>
+                                <option value="Mythical">Mythical</option>
+                            </select>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pet -->
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 shadow-sm border-0 rounded-4">
+                    <div class="card-header bg-success text-white text-center">
+                        <h5 class="card-title"><i class="bi bi-heart-fill me-2"></i>Pet</h5>
+                        <p class="card-text">Create your pet</p>
+                    </div>
+                    <div class="card-body">
+
+                        <div class="mb-3">
+                            <label for="petName" class="form-label">🐾 Name:</label>
+                            <input type="text" id="petName" class="form-control" placeholder="Enter pet name">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="petSpecies" class="form-label">🐺 Species:</label>
+                            <select class="form-select" id="petSpecies">
+                                <option selected disabled>Select species</option>
+                                <option value="Wolf">Wolf</option>
+                                <option value="Dragon">Dragon</option>
+                                <option value="Cat">Cat</option>
+                                <option value="Phoenix">Phoenix</option>
+                                <option value="Bear">Bear</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="petBuff" class="form-label">💎 Buff:</label>
+                            <input type="text" id="petBuff" class="form-control" placeholder="Enter pet buff" readonly>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="petRarity" class="form-label">🏆 Rarity:</label>
+                            <select class="form-select" id="petRarity" disabled>
+                                <option selected disabled>Select rarity</option>
+                                <option value="Common">Common</option>
+                                <option value="Uncommon">Uncommon</option>
+                                <option value="Rare">Rare</option>
+                                <option value="Epic">Epic</option>
+                                <option value="Legendary">Legendary</option>
+                                <option value="Mythical">Mythical</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="petAttack" class="form-label">Attack:</label>
+                            <input type="number" id="petAttack" class="form-control" placeholder="Enter pet attack" readonly>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="text-center mt-4 mb-5">
+            <button id="createCharacter" class="btn btn-success btn-lg px-5 shadow">
+                <i class="bi bi-controller me-2"></i>
+                Create Character
+            </button>
+        </div>
+
+<div class="container mb-5">
+    <h3 class="mb-3">📜 Created Characters</h3>
+
+    <div id="characterList" class="row g-3"></div>
+</div>
+    </div>
+
+<div class="modal fade" id="characterModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0 rounded-4">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">
+                    <i class="bi bi-stars me-2"></i>
+                    Character Created
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
+            </div>
+
+            <div class="modal-body bg-light" id="characterModalBody">
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-success px-4" data-bs-dismiss="modal"> ✅ Close </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.8/js/bootstrap.bundle.min.js"></script>
+    
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
