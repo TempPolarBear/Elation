@@ -1,14 +1,14 @@
 # Character Creator
 
-Веб-приложение для пошагового создания фэнтезийного персонажа, его снаряжения и питомца.
+A web application for step-by-step creation of a fantasy character, equipment, and pet.
 
 ## Features
 
-- Выбор класса и генерация характеристик персонажа
-- Случайный аватар через DiceBear
-- Создание оружия, брони и питомца с характеристиками, редкостью, зачарованиями и баффами
-- Валидация каждого шага и просмотр созданного персонажа в модальном окне
-- Сохранение списка персонажей в `localStorage`
+- Character-class selection and stat generation
+- Random avatar generation through DiceBear
+- Weapon, armor, and pet creation with stats, rarity, enchantments, and buffs
+- Validation at every step and a modal view of each created character
+- Character-list persistence in `localStorage`
 
 ## Technologies
 
