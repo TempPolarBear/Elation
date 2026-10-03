@@ -1,46 +1,38 @@
 # Character Creator
 
-A web application for creating fantasy game characters.
+Веб-приложение для пошагового создания фэнтезийного персонажа, его снаряжения и питомца.
 
-## About
+## Features
 
-Character Creator is a JavaScript project where you can create a game character with:
-
-- Character class
-- Randomized character statistics
-- Weapon
-- Armor
-- Pet
-- Rarity
-- Enchantments
-- Buffs
+- Выбор класса и генерация характеристик персонажа
+- Случайный аватар через DiceBear
+- Создание оружия, брони и питомца с характеристиками, редкостью, зачарованиями и баффами
+- Валидация каждого шага и просмотр созданного персонажа в модальном окне
+- Сохранение списка персонажей в `localStorage`
 
 ## Technologies
 
-- JavaScript
+- JavaScript (ES modules)
 - Vite
-- HTML5
-- CSS3
-- Bootstrap
-
-## OOP Concepts
-
-The project demonstrates:
-
-- Classes
-- Encapsulation
-- Composition
-- Getters
-- Modules
-- ES6 imports and exports
+- HTML
+- CSS
+- Bootstrap 5 and Bootstrap Icons
 
 ## Project Structure
 
 ```text
 src/
 ├── js/
-│   ├── classes/
-│   ├── data/
-│   └── utils/
+│   ├── classes/   # Character, Weapon, Armor and Pet
+│   ├── data/      # rarities, enchantments and buffs
+│   └── utils/     # generators, helpers and rendering
 ├── main.js
 └── style.css
+```
+
+## Getting Started
+
+```bash
+npm install
+npm run dev
+```
